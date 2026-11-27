@@ -10,7 +10,8 @@ from sqlalchemy.orm import sessionmaker
 DB_PATH = Path(__file__).resolve().parent.parent / "data" / "gummy_erp.db"
 DATABASE_URL = f"sqlite:///{DB_PATH}"
 
-engine = create_engine(DATABASE_URL, echo=True)
+# echo=False para no llenar la consola con SQL (cambiar a True para depurar)
+engine = create_engine(DATABASE_URL, echo=False)
 
 SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 
@@ -32,13 +33,15 @@ def get_session() -> Session:
 
 
 def init_db() -> None:
+    """Crea las tablas que falten. Nunca borra ni sobrescribe datos existentes."""
     # Se importan aqui para registrar todas las tablas en Base.metadata
     # (importarlas arriba crearia una importacion circular)
+    from models import usuario_model
     from models import cliente_model
-    from models import vendedor_model
     from models import producto_model
     from models import venta_model
-    from models import compra_model
-    from models import compra_movimiento_model
+    from models import detalle_venta_model
+    from models import movimiento_model
 
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     Base.metadata.create_all(engine)

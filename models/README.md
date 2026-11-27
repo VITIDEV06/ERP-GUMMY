@@ -11,33 +11,33 @@ Archivos que vas a usar:
 | Archivo | Qué contiene |
 |:---|:---|
 | [`database.py`](database.py) | El `engine` (conexión a `data/gummy_erp.db`), la clase `Base`, `get_session()` e `init_db()` |
-| [`cliente_model.py`](cliente_model.py) | `Cliente` → tabla `customer` |
-| [`vendedor_model.py`](vendedor_model.py) | `Vendedor` → tabla `seller` |
+| [`usuario_model.py`](usuario_model.py) | `Usuario` → tabla `user` (rol `administrador` o `vendedor`) |
 | [`producto_model.py`](producto_model.py) | `Producto` → tabla `product` |
-| [`venta_model.py`](venta_model.py) | `Venta` → tabla `sale` |
-| [`compra_model.py`](compra_model.py) | `Compra` → tabla `purchase` |
-| [`compra_movimiento_model.py`](compra_movimiento_model.py) | `CompraMovimiento` → tabla `purchase_movement` |
+| [`cliente_model.py`](cliente_model.py) | `Cliente` → tabla `customer` |
+| [`venta_model.py`](venta_model.py) | `Venta` → tabla `sale` (encabezado de la venta) |
+| [`detalle_venta_model.py`](detalle_venta_model.py) | `DetalleVenta` → tabla `sale_detail` (antes `Compra`: los productos de cada venta) |
+| [`movimiento_model.py`](movimiento_model.py) | `MovimientoInventario` → tabla `inventory_movement` (entradas y salidas) |
+
+> El modelo `Vendedor` (tabla `seller` de Olist) se eliminó: ahora "vendedor" es un **rol** de `Usuario`. Los pagos (`CompraMovimiento`) se reemplazaron por los movimientos de inventario, que sí usa el ERP.
 
 Las tablas se crean llamando una vez a `init_db()` desde la raíz del proyecto. Ejecuta tu código **siempre desde la raíz** (`GUMMY-ERP/`), porque los modelos se importan como `models.<archivo>`.
 
 ### Cómo se relacionan las tablas
 
-<p align="center">
-  <img src="../assets/Database%20Relationships%20with%20Added%20Order%20Link.png" alt="Relaciones entre las tablas de la base de datos" width="85%">
-</p>
-
-En el código, cada flecha del diagrama es una `ForeignKey`:
+En el código, cada relación es una `ForeignKey`:
 
 | Tabla | Columna | Apunta a |
 |:---|:---|:---|
-| `Venta` | `customer_id` | `Cliente.id` |
-| `Venta` | `product_id` | `Producto.id` |
-| `Compra` | `order_id` | `Venta.id` |
-| `Compra` | `product_id` | `Producto.id` |
-| `Compra` | `seller_id` | `Vendedor.id` |
-| `CompraMovimiento` | `order_id` | `Venta.id` |
+| `Venta` | `cliente_id` | `Cliente.id` (opcional) |
+| `Venta` | `usuario_id` | `Usuario.id` |
+| `DetalleVenta` | `venta_id` | `Venta.id` |
+| `DetalleVenta` | `producto_id` | `Producto.id` |
+| `MovimientoInventario` | `producto_id` | `Producto.id` |
+| `MovimientoInventario` | `venta_id` | `Venta.id` (solo en salidas por venta) |
 
-Además, algunos modelos tienen un atributo de **relación** (`venta.cliente`, `venta.producto`, `compra.venta`, `compra.producto`, `compra.vendedor`, `movimiento.venta`) que permite enlazar objetos sin escribir el `id` a mano.
+Atributos de **relación**: `venta.cliente`, `venta.usuario`, `venta.detalles` (lista), `detalle.venta`, `detalle.producto` y `movimiento.producto`. El diagrama de la base está en el [README principal](../README.md#base-de-datos).
+
+> Ejemplo resuelto en el proyecto: `controllers/venta_controller.py` crea una `Venta`, le agrega varios `DetalleVenta` con `venta.detalles.append(...)` y guarda todo con un solo `commit()`. `services/carga_inicial.py` muestra cómo cargar los CSV de `data/raw/`.
 
 ---
 
@@ -79,7 +79,7 @@ Lo que hace cada parte:
 | 4. Agregarlos | `session.add_all([...])` | Marca los objetos como pendientes. Todavía **no** están en la base de datos. Para uno solo existe `session.add(obj)`. |
 | 5. Confirmar | `session.commit()` | Ejecuta los `INSERT` y confirma la transacción. Si no llamas a `commit()`, no se guarda nada. |
 
-Con `echo=True` (como está en `database.py`) verás en la consola los `INSERT` que se ejecutan. Fíjate en el orden: primero las filas de `user_account` y después las de `address`, porque `address` necesita el `id` del usuario.
+Con `echo=True` en `database.py` (por defecto está en `False`) verás en la consola los `INSERT` que se ejecutan. Fíjate en el orden: primero las filas de `user_account` y después las de `address`, porque `address` necesita el `id` del usuario.
 
 ---
 
@@ -92,7 +92,7 @@ Responde estas preguntas antes de escribir código:
 **a) ¿Qué columnas pide el modelo?**
 Abre el archivo del modelo y lista sus atributos `Mapped[...]`.
 - ¿Cuáles son `Optional[...]`? Esas pueden quedar vacías (`None`); las demás son obligatorias.
-- ¿Qué tipo pide cada una? Por ejemplo, las fechas de `Venta` y `Compra` son `datetime`, no texto. ¿Cómo conviertes `"2017-10-06 15:28:20"` en un `datetime`?
+- ¿Qué tipo pide cada una? Por ejemplo, las fechas de `Venta` y `MovimientoInventario` son `datetime`, no texto. ¿Cómo conviertes `"2017-10-06 15:28:20"` en un `datetime`?
 
 **b) ¿En qué orden se insertan las tablas?**
 Mira el diagrama de la sección 1. Una fila no puede apuntar a otra que todavía no existe (las `ForeignKey` están activadas en SQLite).

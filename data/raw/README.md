@@ -206,10 +206,21 @@ Los modelos de la base de datos ([`models/`](../../models/)) no incluyen todas l
 
 ---
 
-## 6. Pendiente: traducir las categorías al español
+## 6. Traducción de las categorías al español
 
 Las categorías de `producto.csv` (`product_category_name`) están en **portugués**. El archivo [`product_category_name_translation.csv`](product_category_name_translation.csv) solo las traduce al **inglés** (columna `product_category_name_english`).
 
 **Las categorías de productos deben traducirse al español.** Para ello se puede partir del archivo de traducción y agregarle una columna con el nombre en español. Las 16 categorías que aparecen en `producto.csv` están en ese archivo:
 
 `automotivo`, `bebes`, `bebidas`, `beleza_saude`, `cama_mesa_banho`, `construcao_ferramentas_construcao`, `eletronicos`, `ferramentas_jardim`, `informatica_acessorios`, `moveis_decoracao`, `moveis_escritorio`, `moveis_sala`, `relogios_presentes`, `telefonia`, `telefonia_fixa`, `utilidades_domesticas`.
+
+> **Resuelto:** la traducción de estas 16 categorías está en el diccionario `CATEGORIAS_ES` de [`services/carga_inicial.py`](../../services/carga_inicial.py), que se usa al cargar los productos de demostración.
+
+## 7. Cómo los usa la aplicación
+
+`services/carga_inicial.py` carga estos CSV **solo la primera vez**, cuando la base no tiene productos ni ventas:
+
+- **Productos:** nombre generado a partir de la categoría (por ejemplo, `Bebidas 01`), precio de `producto.csv` y stock inicial = unidades vendidas + un extra, para que algunos productos queden con bajo stock.
+- **Clientes:** `Cliente 01`, `Cliente 02`, ... con su ciudad, estado y código postal (completado con ceros).
+- **Ventas:** una venta por pedido de `venta.csv`, con la fecha `order_purchase_timestamp`. Los ítems de `compra.csv` se agrupan por producto para formar cada `DetalleVenta` (cantidad = número de ítems).
+- **Inventario:** una entrada inicial por producto y una salida por cada producto vendido.
