@@ -1,22 +1,38 @@
-# =========================================================
-# GUMMY ERP - dependencias del proyecto
-# Python 3.12 (entorno de desarrollo: 3.12.10)
-# =========================================================
-# Solo se listan las dependencias directas instaladas en el entorno
-# virtual. Sus dependencias transitivas (numpy, httpx, pillow, etc.)
-# las resuelve pip automaticamente.
-#
-# sqlite3 forma parte de la biblioteca estandar de Python:
-# no se instala por separado.
+anyio==4.16.0
 
-# Interfaz web
+#Hashing
+bcrypt==5.0.0
+
+###
+
+certifi==2026.11.20
+contourpy==1.4.0
+cycler==0.12.1
 flet==1.1.3
-
-# Procesamiento y analisis de datos
-pandas==3.1.1
+# Servidor web de Flet (necesario para abrir la app en el navegador)
+flet-web==1.1.3
+fonttools==4.69.1
+h11==0.16.0
+httpcore==1.0.9
+httpx==0.28.1
+idna==3.20
+kiwisolver==1.5.1
 
 # Graficas
-matplotlib==3.11.2
 
-# Hash seguro de contrasenas (inicio de sesion)
-bcrypt==5.0.0
+matplotlib==3.11.2
+msgpack==1.2.4
+numpy==2.5.5
+oauthlib==4.0.1
+packaging==26.4
+pandas==3.1.1
+pillow==13.0.0
+pyparsing==3.3.3
+python-dateutil==4.0.0
+repath==0.9.0
+six==1.17.0
+
+#Base de datos
+SQLAlchemy==2.1.9
+typing_extensions==4.16.0
+tzdata==2026.6
